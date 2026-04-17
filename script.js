@@ -13,61 +13,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Since we copied generated assets into local assets/ folder, let's grab them.
-  // The run_command copied *.png. Let's find dynamically what they are named...
-  // Alternatively, we know the prefix of the gen images or we can hardcode fallback logic if they change names.
-  
-  const placeholders = [
-    'thumb_cyberpunk_racing_1776402685155.png',
-    'thumb_retro_rpg_1776402698058.png',
-    'thumb_fighting_game_1776402711977.png',
-    'hero_scifi_game_1776402674256.png'
-  ];
-
   // Set Hero Background dynamically based on local assets
   const heroSection = document.getElementById('hero');
-  heroSection.style.backgroundImage = `url('/assets/hero_scifi_game_1776402674256.png')`;
 
   // Fetch real games from our new Node.js backend
   fetch('/api/games')
     .then(res => res.json())
     .then(games => {
-      // Inject some mock thumbnails ONLY if we didn't get real boxart scraped!
-      const gamesWithImages = games.map((g, index) => {
-         return {
-            ...g,
-            img: g.img || `/assets/${placeholders[index % placeholders.length]}`
-         };
-      });
+      // Remove mock generation logic, strictly use backend img path
+      const activeGames = games.filter(g => g.img); // Optional: filter games that don't have thumbnails
 
-      // Update the hero text to standard
-      if(gamesWithImages.length > 0) {
-          // Let's filter for one that actually has a real boxart to feature it if possible, otherwise use first
-          const featured = gamesWithImages.find(g => g.img && !g.img.includes('/assets/')) || gamesWithImages[0];
-          
-          const heroTitle = document.querySelector('.hero-title');
-          heroTitle.textContent = featured.title;
-          
-          // Use the actual box art as the hero background if it exists
-          const heroSection = document.getElementById('hero');
-          heroSection.style.backgroundImage = `url('${featured.img}')`;
-          // Tweak the css background size to 'contain' if it's a vertical boxart, but keep Netflix feel
-          heroSection.style.backgroundSize = 'cover';
-          heroSection.style.backgroundPosition = 'top center';
-          
-          window.playMockGame = function() {
-              launchNativeGame(featured.path, featured.title);
-          };
+      // Default the hero text to the first game
+      if(activeGames.length > 0) {
+          featureGame(activeGames[0]);
       }
 
       // Populate Carousels
-      populateCarousel('carousel-recent', gamesWithImages);
-      // Give trending a slightly shuffled view
-      populateCarousel('carousel-trending', [...gamesWithImages].reverse());
+      populateCarousel('carousel-recent', activeGames);
+      populateCarousel('carousel-trending', [...activeGames].reverse());
     })
     .catch(err => {
       console.error("Failed to load games from backend", err);
     });
+
+  function featureGame(game) {
+      const heroTitle = document.querySelector('.hero-title');
+      heroTitle.textContent = game.title;
+      
+      const heroSection = document.getElementById('hero');
+      heroSection.style.backgroundImage = `url('${game.img}')`;
+      heroSection.style.backgroundSize = 'cover';
+      heroSection.style.backgroundPosition = 'top center';
+      
+      const heroDesc = document.querySelector('.hero-desc');
+      if (heroDesc) {
+         heroDesc.textContent = `Get ready to play ${game.title}! Dive back into this classic retro masterpiece straight from your local library.`;
+      }
+      
+      window.playMockGame = function() {
+          launchNativeGame(game.path, game.title);
+      };
+      
+      // Scroll to top smoothly so the user sees the featured game
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   function populateCarousel(containerId, sourceGames) {
     const container = document.getElementById(containerId);
@@ -76,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
     sourceGames.forEach(game => {
       const card = document.createElement('div');
       card.className = 'game-card';
-      // Pass the real native rom path
-      card.onclick = () => launchNativeGame(game.path, game.title);
+      
+      // Instead of firing up openemu immediately, feature it up top!
+      card.onclick = () => featureGame(game);
       
       const img = document.createElement('img');
       img.alt = game.title;
