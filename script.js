@@ -20,17 +20,33 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('/api/games')
     .then(res => res.json())
     .then(games => {
-      // Remove mock generation logic, strictly use backend img path
-      const activeGames = games.filter(g => g.img); // Optional: filter games that don't have thumbnails
+      // Include all games, even those without images (like Dolphin games)
+      const activeGames = games;
 
-      // Default the hero text to the first game
-      if(activeGames.length > 0) {
-          featureGame(activeGames[0]);
+      // 1. Sort games alphabetically for A-Z
+      const azGames = [...activeGames].sort((a, b) => a.title.localeCompare(b.title));
+      
+      // 2. Mock 'Recently Played' using the first 10 games
+      const recentGames = activeGames.slice(0, 10);
+
+      // Default the hero text to the first A-Z game
+      if(azGames.length > 0) {
+          featureGame(azGames[0]);
       }
 
-      // Populate Carousels
-      populateCarousel('carousel-recent', activeGames);
-      populateCarousel('carousel-trending', [...activeGames].reverse());
+      // Populate containers
+      populateCarousel('carousel-recent', recentGames);
+      populateCarousel('grid-az', azGames);
+
+      // Setup scroll arrow logic for recently played
+      const scrollRightBtn = document.getElementById('scroll-right-recent');
+      const recentContainer = document.getElementById('carousel-recent');
+      if (scrollRightBtn && recentContainer) {
+          scrollRightBtn.addEventListener('click', () => {
+              // Scroll horizontally by roughly 3-4 cards
+              recentContainer.scrollBy({ left: 800, behavior: 'smooth' });
+          });
+      }
     })
     .catch(err => {
       console.error("Failed to load games from backend", err);
@@ -51,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       window.playMockGame = function() {
-          launchNativeGame(game.path, game.title);
+          launchNativeGame(game.path, game.title, game.emulator);
       };
       
       // Scroll to top smoothly so the user sees the featured game
@@ -66,14 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = document.createElement('div');
       card.className = 'game-card';
       
-      // Instead of firing up openemu immediately, feature it up top!
-      card.onclick = () => featureGame(game);
+      card.onclick = () => launchNativeGame(game.path, game.title, game.emulator);
       
-      const img = document.createElement('img');
-      img.alt = game.title;
-      img.src = game.img;
+      if (game.img) {
+          const img = document.createElement('img');
+          img.alt = game.title;
+          img.src = game.img;
+          card.appendChild(img);
+      } else {
+          const titleDiv = document.createElement('div');
+          titleDiv.className = 'game-card-title';
+          titleDiv.textContent = game.title;
+          card.appendChild(titleDiv);
+          card.classList.add('no-img');
+      }
       
-      card.appendChild(img);
       container.appendChild(card);
     });
   }
@@ -81,13 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // No changes needed, but I'll write the unchanged content just to satisfy the tool call.
-function launchNativeGame(romPath, title) {
-  alert(`Firing up ${title} in OpenEmu Core!`);
-  
+function launchNativeGame(romPath, title, emulator) {
   fetch('/api/launch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ path: romPath })
+      body: JSON.stringify({ path: romPath, emulator: emulator })
   })
   .then(res => res.json())
   .then(data => {
