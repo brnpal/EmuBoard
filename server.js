@@ -131,7 +131,9 @@ app.post('/api/launch', (req, res) => {
 
     if (emulator === 'Dolphin') {
         console.log(`Starting Dolphin with game: ${romPath}`);
-        exec(`open -a "Dolphin" "${romPath}"`, (error, stdout, stderr) => {
+        // Run Dolphin in batch mode (-b) so it closes entirely when the game ends,
+        // and specify the file to execute (-e)
+        exec(`open -a "Dolphin" --args -b -e "${romPath}"`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Exec Error: ${error}`);
                 return res.status(500).json({ error: error.message });
