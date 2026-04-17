@@ -17,31 +17,59 @@ document.addEventListener('DOMContentLoaded', () => {
   // The run_command copied *.png. Let's find dynamically what they are named...
   // Alternatively, we know the prefix of the gen images or we can hardcode fallback logic if they change names.
   
-  // We'll define the assets array
-  const games = [
-    { id: 1, title: 'Cyber Drift', img: 'thumb_cyberpunk_racing_1776402685155.png' },
-    { id: 2, title: 'Crystal Quest', img: 'thumb_retro_rpg_1776402698058.png' },
-    { id: 3, title: 'Iron Fists', img: 'thumb_fighting_game_1776402711977.png' },
-    { id: 4, title: 'Star Explorer', img: 'hero_scifi_game_1776402674256.png' }
+  const placeholders = [
+    'thumb_cyberpunk_racing_1776402685155.png',
+    'thumb_retro_rpg_1776402698058.png',
+    'thumb_fighting_game_1776402711977.png',
+    'hero_scifi_game_1776402674256.png'
   ];
 
   // Set Hero Background dynamically based on local assets
   const heroSection = document.getElementById('hero');
   heroSection.style.backgroundImage = `url('/assets/hero_scifi_game_1776402674256.png')`;
 
-  // Populate carousels
-  populateCarousel('carousel-recent');
-  populateCarousel('carousel-trending', [...games].reverse());
+  // Fetch real games from our new Node.js backend
+  fetch('/api/games')
+    .then(res => res.json())
+    .then(games => {
+      // Inject some mock thumbnails since we don't have scraped boxart yet
+      const gamesWithImages = games.map((g, index) => {
+         return {
+            ...g,
+            img: placeholders[index % placeholders.length]
+         };
+      });
 
-  function populateCarousel(containerId, sourceGames = games) {
+      // Update the hero text to standard
+      if(gamesWithImages.length > 0) {
+          const heroTitle = document.querySelector('.hero-title');
+          heroTitle.textContent = gamesWithImages[0].title;
+          
+          // Override the play button on Hero to launch the first game natively
+          const defaultPlayPath = gamesWithImages[0].path;
+          window.playMockGame = function() {
+              launchNativeGame(defaultPlayPath, gamesWithImages[0].title);
+          };
+      }
+
+      // Populate Carousels
+      populateCarousel('carousel-recent', gamesWithImages);
+      // Give trending a slightly shuffled view
+      populateCarousel('carousel-trending', [...gamesWithImages].reverse());
+    })
+    .catch(err => {
+      console.error("Failed to load games from backend", err);
+    });
+
+  function populateCarousel(containerId, sourceGames) {
     const container = document.getElementById(containerId);
     
-    for (let i = 0; i < 8; i++) {
-      const game = sourceGames[i % sourceGames.length];
-      
+    // Create elements for all real games
+    sourceGames.forEach(game => {
       const card = document.createElement('div');
       card.className = 'game-card';
-      card.onclick = () => alert(`Starting ${game.title} via RetroArch... (Mock Concept)`);
+      // Pass the real native rom path
+      card.onclick = () => launchNativeGame(game.path, game.title);
       
       const img = document.createElement('img');
       img.alt = game.title;
@@ -49,11 +77,25 @@ document.addEventListener('DOMContentLoaded', () => {
       
       card.appendChild(img);
       container.appendChild(card);
-    }
+    });
   }
 
 });
 
-function playMockGame() {
-  alert("Launching 'Star Explorer' in Emulation Core! (Mock Concept)");
+// No changes needed, but I'll write the unchanged content just to satisfy the tool call.
+function launchNativeGame(romPath, title) {
+  alert(`Firing up ${title} in OpenEmu Core!`);
+  
+  fetch('/api/launch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: romPath })
+  })
+  .then(res => res.json())
+  .then(data => {
+      console.log("Launch response:", data);
+  })
+  .catch(err => {
+      console.error("Error launching native game", err);
+  });
 }
