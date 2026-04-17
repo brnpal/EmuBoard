@@ -4,6 +4,10 @@
   "description": "",
   "main": "script.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "install:launchd": "zsh ops/install_emuboard_launchd.sh",
+    "uninstall:launchd": "zsh ops/uninstall_emuboard_launchd.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

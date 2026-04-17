@@ -101,6 +101,9 @@ body {
   background: 
     linear-gradient(to right, var(--bg-color) 0%, transparent 50%),
     linear-gradient(to top, var(--bg-color) 0%, transparent 60%);
+  background-color: rgba(0, 0, 0, 0.46);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 1;
 }
 
