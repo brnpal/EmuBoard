@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmuBoard</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="logo">EmuBoard</div>
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Systems</a></li>
+      <li><a href="#">Favorites</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero" id="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">STAR EXPLORER</h1>
+      <div class="hero-meta">
+        <span class="tag">SNES</span>
+        <span class="tag">RPG</span>
+        <span>1994</span>
+      </div>
+      <p class="hero-desc">
+        Embark on a grand sci-fi adventure across the cosmos. Master the elements, 
+        upgrade your ship, and battle the alien empire in this classic 16-bit masterpiece.
+      </p>
+      <div class="hero-buttons">
+        <button class="btn btn-primary" onclick="playMockGame()">
+          <!-- SVG Play Icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Play Now
+        </button>
+        <button class="btn btn-secondary">
+          <!-- SVG Info Icon -->
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          More Info
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Carousels -->
+  <main class="main-content">
+    
+    <section class="carousel-section">
+      <h2 class="carousel-title">Recently Played</h2>
+      <div class="carousel-container" id="carousel-recent">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+    <section class="carousel-section">
+      <h2 class="carousel-title">Trending in Retro</h2>
+      <div class="carousel-container" id="carousel-trending">
+        <!-- Injected via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
