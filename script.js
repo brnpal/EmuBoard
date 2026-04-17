@@ -32,23 +32,31 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('/api/games')
     .then(res => res.json())
     .then(games => {
-      // Inject some mock thumbnails since we don't have scraped boxart yet
+      // Inject some mock thumbnails ONLY if we didn't get real boxart scraped!
       const gamesWithImages = games.map((g, index) => {
          return {
             ...g,
-            img: placeholders[index % placeholders.length]
+            img: g.img || `/assets/${placeholders[index % placeholders.length]}`
          };
       });
 
       // Update the hero text to standard
       if(gamesWithImages.length > 0) {
-          const heroTitle = document.querySelector('.hero-title');
-          heroTitle.textContent = gamesWithImages[0].title;
+          // Let's filter for one that actually has a real boxart to feature it if possible, otherwise use first
+          const featured = gamesWithImages.find(g => g.img && !g.img.includes('/assets/')) || gamesWithImages[0];
           
-          // Override the play button on Hero to launch the first game natively
-          const defaultPlayPath = gamesWithImages[0].path;
+          const heroTitle = document.querySelector('.hero-title');
+          heroTitle.textContent = featured.title;
+          
+          // Use the actual box art as the hero background if it exists
+          const heroSection = document.getElementById('hero');
+          heroSection.style.backgroundImage = `url('${featured.img}')`;
+          // Tweak the css background size to 'contain' if it's a vertical boxart, but keep Netflix feel
+          heroSection.style.backgroundSize = 'cover';
+          heroSection.style.backgroundPosition = 'top center';
+          
           window.playMockGame = function() {
-              launchNativeGame(defaultPlayPath, gamesWithImages[0].title);
+              launchNativeGame(featured.path, featured.title);
           };
       }
 
@@ -73,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const img = document.createElement('img');
       img.alt = game.title;
-      img.src = `/assets/${game.img}`;
+      img.src = game.img;
       
       card.appendChild(img);
       container.appendChild(card);

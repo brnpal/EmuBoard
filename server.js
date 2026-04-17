@@ -2,11 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 
 const app = express();
 const PORT = 8080;
 const GAMES_DIR = '/Users/brendanallaway/Documents/openemu games';
+const ARTWORK_DIR = '/Users/brendanallaway/Library/Application Support/OpenEmu/Game Library/Artwork';
+const DB_PATH = '/Users/brendanallaway/Library/Application Support/OpenEmu/Game Library/Library.storedata';
 
 app.use(cors());
 app.use(express.json());
@@ -14,17 +16,39 @@ app.use(express.json());
 // Serve static files from the EmuBoard frontend directory
 app.use(express.static(__dirname));
 
+// Serve actual OpenEmu artwork directory
+app.use('/artwork', express.static(ARTWORK_DIR));
+
+// Load DB Map
+function getArtworkMap() {
+    try {
+        const query = 'SELECT ZGAME.ZGAMETITLE, ZIMAGE.ZRELATIVEPATH FROM ZGAME LEFT JOIN ZIMAGE ON ZGAME.ZBOXIMAGE = ZIMAGE.Z_PK;';
+        const stdout = execSync(`sqlite3 "${DB_PATH}" "${query}"`, { encoding: 'utf-8' });
+        const map = {};
+        stdout.split('\n').forEach(line => {
+             const parts = line.split('|');
+             if(parts.length === 2 && parts[0]) {
+                 map[parts[0].trim().toLowerCase()] = parts[1].trim();
+             }
+        });
+        return map;
+    } catch(e) {
+        console.error("Failed to read sqlite:", e);
+        return {};
+    }
+}
+
 // Endpoint to scan and get all games
 app.get('/api/games', (req, res) => {
     try {
         const games = [];
         
-        // Ensure directory exists
         if (!fs.existsSync(GAMES_DIR)) {
             return res.json([]);
         }
 
         const entries = fs.readdirSync(GAMES_DIR, { withFileTypes: true });
+        const artworkMap = getArtworkMap(); // refresh on load in case of new games
 
         for (const entry of entries) {
             // Check if it's a directory (game folders from Vimm's Lair)
@@ -39,10 +63,18 @@ app.get('/api/games', (req, res) => {
                 );
 
                 if (romFile) {
+                    const cleanTitle = entry.name.replace(/\s*\(.*?\)/g, '').trim().toLowerCase();
+                    // Some games might have subtitles replaced with colons in the DB, let's also try splitting by hyphen
+                    const cleanTitleAlt = cleanTitle.replace(/\s*-\s*/g, ': ');
+                    
+                    let imageUuid = artworkMap[cleanTitle] || artworkMap[cleanTitleAlt];
+                    
                     games.push({
                         id: entry.name,
-                        title: entry.name, // The folder name is usually the clean game title
-                        path: path.join(gameFolderPath, romFile)
+                        title: entry.name, // The folder name
+                        path: path.join(gameFolderPath, romFile),
+                        // provide artwork path if found
+                        img: imageUuid ? `/artwork/${imageUuid}` : null
                     });
                 }
             }
