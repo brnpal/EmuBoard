@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "node server.js",
     "install:launchd": "zsh ops/install_emuboard_launchd.sh",
+    "open:bookmark": "zsh ops/open_emuboard.sh --no-browser",
     "uninstall:launchd": "zsh ops/uninstall_emuboard_launchd.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

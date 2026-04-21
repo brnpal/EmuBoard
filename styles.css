@@ -266,12 +266,12 @@ body {
 }
 
 .grid-container .game-card {
-  height: 210px;
+  height: 158px;
 }
 
 .game-card {
   flex: 0 0 auto;
-  height: 280px;
+  height: 210px;
   border-radius: 8px;
   overflow: hidden;
   position: relative;
