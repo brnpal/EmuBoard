@@ -167,7 +167,6 @@ private struct GameShelf: View {
 private struct GameGridView: View {
     let title: String
     let games: [Game]
-    private let columns = [GridItem(.adaptive(minimum: 174, maximum: 200), spacing: 22, alignment: .top)]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
@@ -183,12 +182,76 @@ private struct GameGridView: View {
                 }
                 .frame(maxWidth: .infinity, minHeight: 350)
             } else {
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 28) {
+                GameFlowLayout(horizontalSpacing: 18, verticalSpacing: 28) {
                     ForEach(games) { game in GameCard(game: game) }
                 }
             }
         }
         .padding(32)
+    }
+}
+
+private struct GameFlowLayout: Layout {
+    let horizontalSpacing: CGFloat
+    let verticalSpacing: CGFloat
+
+    func sizeThatFits(
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) -> CGSize {
+        let availableWidth = proposal.width ?? .infinity
+        var lineWidth: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        var contentWidth: CGFloat = 0
+        var contentHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            let proposedLineWidth = lineWidth == 0 ? size.width : lineWidth + horizontalSpacing + size.width
+
+            if lineWidth > 0 && proposedLineWidth > availableWidth {
+                contentWidth = max(contentWidth, lineWidth)
+                contentHeight += lineHeight + verticalSpacing
+                lineWidth = size.width
+                lineHeight = size.height
+            } else {
+                lineWidth = proposedLineWidth
+                lineHeight = max(lineHeight, size.height)
+            }
+        }
+
+        contentWidth = max(contentWidth, lineWidth)
+        contentHeight += lineHeight
+        return CGSize(width: proposal.width ?? contentWidth, height: contentHeight)
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        var x = bounds.minX
+        var y = bounds.minY
+        var lineHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > bounds.minX && x + size.width > bounds.maxX {
+                x = bounds.minX
+                y += lineHeight + verticalSpacing
+                lineHeight = 0
+            }
+
+            subview.place(
+                at: CGPoint(x: x, y: y),
+                anchor: .topLeading,
+                proposal: ProposedViewSize(size)
+            )
+            x += size.width + horizontalSpacing
+            lineHeight = max(lineHeight, size.height)
+        }
     }
 }
 

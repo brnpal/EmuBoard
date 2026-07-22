@@ -3,10 +3,17 @@ import SwiftUI
 struct GameCard: View {
     @EnvironmentObject private var library: GameLibrary
     let game: Game
-    var width: CGFloat = 174
-    var height: CGFloat = 238
+    var height: CGFloat = 180
+    var fallbackWidth: CGFloat = 174
 
     @State private var isHovered = false
+
+    private var width: CGFloat {
+        guard let image = ArtworkImageStore.image(at: game.artworkURL), image.size.height > 0 else {
+            return fallbackWidth
+        }
+        return height * (image.size.width / image.size.height)
+    }
 
     var body: some View {
         Button {
@@ -14,8 +21,9 @@ struct GameCard: View {
         } label: {
             VStack(alignment: .leading, spacing: 10) {
                 ZStack {
-                    ArtworkView(game: game)
+                    ArtworkView(game: game, contentMode: .fit)
                         .frame(width: width, height: height)
+                        .background(.black.opacity(0.3))
                         .clipped()
                         .overlay(alignment: .bottom) {
                             LinearGradient(colors: [.clear, .black.opacity(0.42)], startPoint: .center, endPoint: .bottom)

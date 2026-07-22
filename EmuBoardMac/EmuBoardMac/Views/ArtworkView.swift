@@ -1,13 +1,25 @@
 import AppKit
 import SwiftUI
 
+enum ArtworkImageStore {
+    private static let cache = NSCache<NSURL, NSImage>()
+
+    static func image(at url: URL?) -> NSImage? {
+        guard let url else { return nil }
+        if let cached = cache.object(forKey: url as NSURL) { return cached }
+        guard let image = NSImage(contentsOf: url) else { return nil }
+        cache.setObject(image, forKey: url as NSURL)
+        return image
+    }
+}
+
 struct ArtworkView: View {
     let game: Game
     var contentMode: ContentMode = .fill
 
     var body: some View {
         Group {
-            if let url = game.artworkURL, let image = NSImage(contentsOf: url) {
+            if let image = ArtworkImageStore.image(at: game.artworkURL) {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: contentMode)
