@@ -2,7 +2,7 @@
 
 EmuBoard is a native game-library launcher that unifies OpenEmu, Dolphin, Ship of Harkinian, 2 Ship 2 Harkinian, and Dusklight behind one polished interface.
 
-The native macOS app is the current product. It does not run a web server, open a browser, or require Node. The original browser implementation remains in the repository as a migration reference.
+EmuBoard is a native application. It does not run a web server, open a browser, or require Node.
 
 ## Native macOS app
 
@@ -31,9 +31,9 @@ You can develop it by opening [EmuBoardMac/EmuBoardMac.xcodeproj](EmuBoardMac/Em
 - OpenEmu ROMs and artwork, read directly from the local OpenEmu library
 - Dolphin GameCube/Wii images (`iso`, `gcm`, `ciso`, `wbfs`, `rvz`, `wia`, `dol`, and `elf`)
 - Ship of Harkinian, 2 Ship 2 Harkinian, and Dusklight when installed in `/Applications`
-- The existing Twilight Princess artwork and Dusklight launch path
+- Twilight Princess artwork and the Dusklight launch path
 
-Default ROM locations match the original EmuBoard setup. Both can be changed in the native Settings window.
+Default ROM locations can be changed in the native Settings window.
 
 ### Native architecture
 
@@ -48,9 +48,3 @@ EmuBoard launches the optimized emulator or native port directly into a selected
 ## Windows and Linux direction
 
 The library, game, system, and launcher concepts are deliberately separated from the macOS views. Windows and Linux should receive optimized platform-native shells and launcher adapters rather than making the Mac app carry a browser runtime. Those targets are not yet included in this milestone.
-
-## Legacy browser app
-
-- `npm start` runs the old local server in the foreground
-- `npm run install:launchd` installs its macOS LaunchAgent and bookmark launcher
-- `npm run uninstall:launchd` removes that LaunchAgent
