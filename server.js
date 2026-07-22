@@ -27,6 +27,14 @@ const NATIVE_GAMES = [
         emulator: '2s2h',
         appPath: '/Applications/2s2h.app',
         thumbnail: 'majoras-mask.jpg'
+    },
+    {
+        id: 'dusklight-tp',
+        title: 'The Legend of Zelda: Twilight Princess',
+        path: '/Applications/Dusklight.app',
+        emulator: 'dusklight',
+        appPath: '/Applications/Dusklight.app',
+        thumbnail: 'twilight-princess.png'
     }
 ];
 const EMULATOR_APPS = {
@@ -48,6 +56,11 @@ const EMULATOR_APPS = {
     '2s2h': {
         appName: '2s2h',
         appPath: '/Applications/2s2h.app',
+        autoQuitWhenWindowCloses: true
+    },
+    dusklight: {
+        appName: 'Dusklight',
+        appPath: '/Applications/Dusklight.app',
         autoQuitWhenWindowCloses: true
     }
 };
@@ -522,6 +535,13 @@ app.post('/api/launch', async (req, res) => {
             await openApp(appPath);
             maybeMonitorEmulatorAutoQuit(emulator);
             return res.json({ success: true, message: "Game launched in 2 Ship 2 Harkinian!" });
+        }
+
+        if (emulator === 'dusklight') {
+            console.log('Starting Dusklight');
+            await openApp(appPath);
+            maybeMonitorEmulatorAutoQuit(emulator);
+            return res.json({ success: true, message: "Game launched in Dusklight!" });
         }
 
         console.log(`Starting OpenEmu with game: ${romPath}`);
